@@ -288,7 +288,7 @@ class BayesianOptimizer:
             self.plot_iteration(i)
 
 
-    def plot_all_in_one(self, cols, folder_path, seed):
+    def plot_all_in_one(self, cols, seed):
         n = len(self.states)
         rows = (n + cols - 1) // cols
     
@@ -320,7 +320,41 @@ class BayesianOptimizer:
             axes[j].axis("off")
     
         plt.tight_layout()
-        plt.savefig(folder_path+f"Seed_{seed}_all_iterations.png", dpi=200)
+        plt.savefig(self.path+f"Seed_{seed}_all_iterations.png", dpi=200)
         plt.close()
+
+    def plot_lr_vs_loss(self, seed):
+        """
+        Plots evaluated learning rates vs. their validation losses.
+    
+        Since the BO stores y = -loss, this method converts it back.
+        """
+    
+        if len(self.dataset) == 0:
+            print("Dataset empty. Run optimization first.")
+            return
+    
+        # Extract learning rates and convert y = -loss back to loss
+        lrs = np.array([x for x, y in self.dataset])
+        losses = np.array([-y for x, y in self.dataset])
+    
+        # Sort by learning rate for nicer visualization
+        idx = np.argsort(lrs)
+        lrs = lrs[idx]
+        losses = losses[idx]
+    
+        plt.figure(figsize=(7, 5))
+        plt.scatter(lrs, losses, color="blue", label="Evaluated Points")
+    
+        plt.xscale("log")
+        plt.xlabel("Learning Rate")
+        plt.ylabel("Validation Loss")
+        plt.title("Evaluated Learning Rates vs. Validation Loss")
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+    
+        plt.savefig(self.path+f"Seed_{seed}_lr_vs_valloss.png", dpi=200)
+        print(f"Saved learning-rate-vs-loss plot to: {save_path}")
+
 
     
