@@ -170,15 +170,17 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
 
     for lr in sobol_init_lrs:
         x_max, best_return_x, best_return_param = bo.eval(1, lr)
-        print(f"{lr} from Sobol: {x_max}")
+        print(f"Learning rate {lr} from Sobol leads to better x_max: {x_max}")
 
     x_max, found_lr, best_model = bo.eval(n_iter=n_iter, init_x_max=x_max)
     
-    print(f"[Seed {seed}] --> Found learning rate after {n_iter} BO-iterations: {found_lr:.6f}")
+    print(f"[Seed {seed}] --> Found best learning rate at: {found_lr:.6f}")
 
-    bo.plot_all_in_one(cols=1, seed=seed)
+    bo.plot_all_in_one(cols=1, seed=seed, save=True, show=False)
 
-    bo.plot_lr_vs_loss(seed=seed)
+    bo.plot_lr_vs_loss(seed=seed, save=True, show=False)
+
+    bo.plot_convergence(seed=seed, save=True, show=False)
     
     best_y = max([pt[1] for pt in bo.dataset])
     return {
@@ -190,7 +192,7 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
     #with initialize(version_base=None, config_path="conf"):
-        cfg = compose(config_name="config")
+        # cfg = compose(config_name="config")
 
     print("Config:\n", OmegaConf.to_yaml(cfg))
     

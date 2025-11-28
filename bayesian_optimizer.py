@@ -207,8 +207,6 @@ class BayesianOptimizer:
                 "util": util,
                 "GP": self.gp.predict(self.gp_search_space, return_std=True)
             })
-
-            # hier müsste best_return_x und best_return_param angepasst werden, weil es sonst nicht gespeichert wird.
             
         return x_max, best_return_x, best_return_param
 
@@ -275,8 +273,6 @@ class BayesianOptimizer:
 
         figure.legend(loc="lower center", ncol=4)
 
-        plt.savefig(self.path+f"/")
-
         plt.show()
 
     def plot_all(self):
@@ -288,7 +284,7 @@ class BayesianOptimizer:
             self.plot_iteration(i)
 
 
-    def plot_all_in_one(self, cols, seed):
+    def plot_all_in_one(self, cols, seed, save=True, show=True):
         n = len(self.states)
         rows = (n + cols - 1) // cols
     
@@ -320,10 +316,15 @@ class BayesianOptimizer:
             axes[j].axis("off")
     
         plt.tight_layout()
-        plt.savefig(self.path+f"Seed_{seed}_all_iterations.png", dpi=200)
-        plt.close()
+        if save:
+            plt.savefig(self.path+f"Seed_{seed}_all_iterations.png", dpi=200)
 
-    def plot_lr_vs_loss(self, seed):
+        if show: 
+            plt.show()
+            
+        #plt.close()
+
+    def plot_lr_vs_loss(self, seed, save=True, show=True):
         """
         Plots evaluated learning rates vs. their validation losses.
     
@@ -352,9 +353,49 @@ class BayesianOptimizer:
         plt.title("Evaluated Learning Rates vs. Validation Loss")
         plt.grid(True, alpha=0.3)
         plt.legend()
+
+        lrvslosspath = str(self.path+f"Seed_{seed}.lr_vs_valloss.png")
+
+        if save:
+            plt.savefig(lrvslosspath, dpi=200)
+            print(f"Saved learning-rate-vs-loss plot to: {lrvslosspath}")
+
+        if show:
+            plt.show()
+
+    def plot_convergence(self, seed, save=True, show=True):
+        """
+        Plots the convergence curve:
+        Best-so-far objective value across all evaluations.
     
-        plt.savefig(self.path+f"Seed_{seed}_lr_vs_valloss.png", dpi=200)
-        print(f"Saved learning-rate-vs-loss plot to: {save_path}")
+        Since y = -loss, higher is better.
+        """
+    
+        if len(self.dataset) == 0:
+            print("Dataset is empty — run optimization first.")
+            return
+    
+        # Extract all y-values in order of evaluation
+        ys = np.array([y for _, y in self.dataset])
+    
+        # Compute best-so-far (cumulative maximum)
+        best_so_far = np.maximum.accumulate(ys)
+    
+        plt.figure(figsize=(7, 5))
+        plt.plot(best_so_far, marker="o", label="Best so far")
+    
+        plt.xlabel("Iteration")
+        plt.ylabel("Best y so far ( = -loss )")
+        plt.title("Convergence of Bayesian Optimization")
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+
+        if save:
+            plt.savefig(self.path+f"Seed_{seed}_iterationvsbestsofar.png", dpi=200)
+
+        if show:
+            plt.show()
+
 
 
     

@@ -6,11 +6,11 @@ defaults:
 # Allgemeine Trainings- / BO-Parameter
 epochs: 1
 seeds: [0]  # 10 Seeds
-n_total: 10        # BO: Gesamtbudget (Sobol + BO)
-n_sobol: 3         # initial design
+n_total: 2        # BO: Gesamtbudget (Sobol + BO)
+n_sobol: 1         # initial design
 bound:
   low: 1e-4
-  high: 2e-1
+  high: 1e-1
 
 
 
