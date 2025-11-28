@@ -1,0 +1,12 @@
+epochs: 1
+seeds:
+- 0
+n_total: 10
+n_sobol: 3
+bound:
+  low: 0.0001
+  high: 0.2
+batch_size: 64
+val_ratio: 0.2
+result_path: results/
+device: mps

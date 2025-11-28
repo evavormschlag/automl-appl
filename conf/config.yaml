@@ -1,0 +1,22 @@
+# conf/config.yaml
+defaults:
+  - override hydra/job_logging: disabled
+  - override hydra/hydra_logging: disabled
+
+# Allgemeine Trainings- / BO-Parameter
+epochs: 1
+seeds: [0]  # 10 Seeds
+n_total: 10        # BO: Gesamtbudget (Sobol + BO)
+n_sobol: 3         # initial design
+bound:
+  low: 1e-4
+  high: 2e-1
+
+
+
+batch_size: 64
+val_ratio: 0.2 # Ratio zwischen Trainings- und Validierungsdaten
+
+result_path: "results/"
+
+device: "mps"      # oder "cuda" / "cpu"
