@@ -176,8 +176,10 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
     
     print(f"[Seed {seed}] --> Found learning rate after {n_iter} BO-iterations: {found_lr:.6f}")
 
-    bo.plot_all_in_one(cols=1, folder_path=cfg.result_path, seed=seed)
+    bo.plot_all_in_one(cols=1, seed=seed)
 
+    bo.plot_lr_vs_loss(seed=seed)
+    
     best_y = max([pt[1] for pt in bo.dataset])
     return {
         "seed": seed,
@@ -188,7 +190,7 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
     #with initialize(version_base=None, config_path="conf"):
-    #    cfg = compose(config_name="config")
+        cfg = compose(config_name="config")
 
     print("Config:\n", OmegaConf.to_yaml(cfg))
     
