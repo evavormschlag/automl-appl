@@ -112,11 +112,13 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
         train_losses.append(avg_train_loss)
         val_losses.append(avg_val_loss)
 
+    epochs_axis = np.arange(1, epochs + 1)  # [1, 2, ..., epochs]
+
     plt.figure(figsize=(8, 5))
     
-    plt.plot(epochs, train_losses, marker='o', label="Train Loss")
+    plt.plot(epochs_axis, train_losses, marker='o', label="Train Loss")
 
-    plt.plot(epochs, val_losses, marker='o', label="Validation Loss")
+    plt.plot(epochs_axis, val_losses, marker='o', label="Validation Loss")
 
     print("train_losses: "+str(train_losses))
     print("val losses: "+str(val_losses))
