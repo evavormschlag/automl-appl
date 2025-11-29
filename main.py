@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import hydra
 import random
+import json
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
@@ -120,8 +121,8 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
 
     plt.plot(epochs_axis, val_losses, marker='o', label="Validation Loss")
 
-    print("train_losses: "+str(train_losses))
-    print("val losses: "+str(val_losses))
+    #print("train_losses: "+str(train_losses))
+    #print("val losses: "+str(val_losses))
 
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
@@ -129,10 +130,10 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
     plt.grid(True, alpha=0.3)
     plt.legend()
 
-    ### TODO
     plt.savefig(f"results/{lr}_epoch_losses.png", dpi=200)
 
     return -avg_val_loss, model
+
 
 def run_single_bo_experiment(cfg: DictConfig, seed: int):
     print(f"\n========== Seed {seed} ==========")
@@ -191,10 +192,9 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
         "best_y": float(best_y),
     }
 
-@hydra.main(version_base=None, config_path="conf", config_name="config")
-def main(cfg: DictConfig):
-    #with initialize(version_base=None, config_path="conf"):
-        # cfg = compose(config_name="config")
+def main():
+    with initialize(version_base=None, config_path="conf"):
+         cfg = compose(config_name="config")
 
     print("Config:\n", OmegaConf.to_yaml(cfg))
     
@@ -203,9 +203,8 @@ def main(cfg: DictConfig):
     for seed in cfg.seeds:
         res = run_single_bo_experiment(cfg, seed)
         results.append(res)
+
     
-    # Ergebnisse speichern (Hydra legt automatisch ein Run-Dir an)
-    import json
     out_path = "results/bo_results.json"
     with open(out_path, "w") as f:
         json.dump(results, f, indent=2)

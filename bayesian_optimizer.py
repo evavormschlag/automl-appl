@@ -288,41 +288,62 @@ class BayesianOptimizer:
         n = len(self.states)
         rows = (n + cols - 1) // cols
     
-        fig, axes = plt.subplots(rows, cols, figsize=(6*cols, 4*rows))
-        axes = axes.flatten()
+        fig = plt.figure(figsize=(6*cols, 4*rows*2))
+        outer_gs = gridspec.GridSpec(rows, cols, figure=fig)
+
+        search_space = self.search_space.reshape(-1)
     
         for i, state in enumerate(self.states):
-            ax = axes[i]
-            search_space = self.search_space.reshape(-1)
+            row = i // cols
+            col = i % cols
+    
+            inner_gs = gridspec.GridSpecFromSubplotSpec(
+                2, 1,
+                subplot_spec=outer_gs[row, col],
+                height_ratios=[3, 1]
+            )
     
             mu, std = state["GP"]
+            mu = mu.reshape(-1)
             util = state["util"].reshape(-1)
-            xs = np.array(state["dataset"])[:, 0]
-            ys = np.array(state["dataset"])[:, 1]
+            data = np.array(state["dataset"])
+            xs = data[:, 0]
+            ys = data[:, 1]
     
-            # GP Mean
-            ax.plot(search_space, mu, label="GP Mean")
-            ax.fill_between(search_space, mu-std, mu+std, alpha=0.3)
+            uniq_xs, idx = np.unique(xs, return_index=True)
+            uniq_ys = ys[idx]
     
-            # Data
-            ax.scatter(xs, ys, s=20, color="red")
+            ax1 = fig.add_subplot(inner_gs[0])
     
-            # Title
-            ax.set_title(f"Iteration {i}")
-            ax.set_xscale("log")
+            if self.mode == "log":
+                ax1.set_xscale("log")
     
-        # deactivate inactive axes
-        for j in range(i+1, len(axes)):
-            axes[j].axis("off")
+            ax1.plot(search_space, mu, color="blue", label="GP mean")
+            ax1.fill_between(search_space, mu - std, mu + std,
+                             color="blue", alpha=0.3, label="GP std")
+    
+            ax1.scatter(uniq_xs, uniq_ys, color="blue", s=20, label="Dataset")
+    
+            ax1.set_xticklabels([])
+            ax1.set_title(f"Iteration {i}")
+    
+            ax2 = fig.add_subplot(inner_gs[1])
+    
+            if self.mode == "log":
+                ax2.set_xscale("log")
+    
+            ax2.plot(search_space, util, color="green", label="Utility function")
+            ax2.fill_between(search_space, np.zeros_like(util), util,
+                             alpha=0.3, color="green")
     
         plt.tight_layout()
+    
         if save:
-            plt.savefig(self.path+f"Seed_{seed}_all_iterations.png", dpi=200)
-
-        if show: 
+            plt.savefig(self.path + f"Seed_{seed}_all_iterations.png", dpi=200)
+    
+        if show:
             plt.show()
             
-        #plt.close()
 
     def plot_lr_vs_loss(self, seed, save=True, show=True):
         """
