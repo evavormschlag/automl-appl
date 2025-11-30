@@ -3,11 +3,11 @@ defaults:
   - override hydra/job_logging: disabled
   - override hydra/hydra_logging: disabled
 
-# Allgemeine Trainings- / BO-Parameter
-epochs: 1
-seeds: [0]  # 10 Seeds
-n_total: 2        # BO: Gesamtbudget (Sobol + BO)
-n_sobol: 1         # initial design
+# training / bo parameter
+epochs: 10
+seeds: [0, 1, 2, 3, 4]  
+n_total: 2        
+n_sobol: 1    
 bound:
   low: 1e-4
   high: 1e-1
@@ -15,8 +15,6 @@ bound:
 
 
 batch_size: 64
-val_ratio: 0.2 # Ratio zwischen Trainings- und Validierungsdaten
+val_ratio: 0.2  # ratio between training and validation
 
-result_path: "results/"
-
-device: "mps"      # oder "cuda" / "cpu"
+device: "mps"      # or "cuda" / "cpu"

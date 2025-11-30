@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
-import hydra
 import random
 import json
 
@@ -27,6 +26,13 @@ warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 
 def set_global_seed(seed: int):
+    """
+    Sets the global seed for this experiment.
+
+    Args:
+        seed: int
+            current used seed
+    """
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -34,6 +40,15 @@ def set_global_seed(seed: int):
 
 
 def build_dataloaders(cfg: DictConfig):
+    """
+    Dataloader.
+
+    Args:
+        cfg: DictConfig
+            Current configuration.
+
+    """
+    print(f"Loading with batch size {cfg.batch_size} and validation ratio of {cfg.val_ratio*100}%")
     ds = FashionMNIST(batch_size=cfg.batch_size, val_ratio=cfg.val_ratio)
 
     train_loader = ds.get_train_loader()
@@ -42,16 +57,48 @@ def build_dataloaders(cfg: DictConfig):
     return train_loader, val_loader
 
 def accuracy(pred, true):
+    """
+    Calculated the accuracy of current batch
+
+    Args:
+        pred: 
+            predicted classes
+        true:
+            the real classes
+    """
     class_index_pred = pred.argmax(dim=1)
     correct = (class_index_pred == true).sum().item()
     return correct / true.size(0)
 
 def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
+    """
+    This is the optimizing function of the bayesian optimization. It trains the model and validates it.
+
+    Args:
+        device: 
+            device that the process is running on. It depends on the config file.
+        lr:
+            learning rate of the current run.
+        train_loader:
+            training dataset
+        val_loader:
+            validation dataset
+        epochs:
+            number of epochs for the training
+
+    Returns:
+        -avg_val_loss:
+            average of the validation loss. It is multiplied by (-1) to create a maximation problem for the bayesian optimization.
+        model: 
+            the current model
+
+    """
     # initialize model
     model = SmallResNet(num_classes=10).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
+    # initialize variables
     val_losses = []
     train_losses = []
     avg_train_loss = 0.0
@@ -59,7 +106,9 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
     avg_val_loss = 0.0
     avg_val_acc = 0.0
 
+    
     for epoch in range(epochs):
+        # ---- TRAINING -------
         model.train()
         train_loop = tqdm(train_loader, desc=f"Train (lr={lr:.1e})")
         total_train_loss = 0.0
@@ -89,11 +138,11 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
 
         avg_train_loss = total_train_loss / len(train_loader)
         avg_train_acc = total_train_acc / len(train_loader)
-            
+
+        # ----- VALIDATION ---------
         print("Validating")
         model.eval()
         with torch.no_grad():
-            # Validation Loss
             total_val_loss = 0.0
             total_val_acc = 0.0
             for images, labels in val_loader:
@@ -110,32 +159,42 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
                 avg_val_loss = 10.0
             print("--> Validation-Loss :%.4f & Validation-Accuracy: %.4f" % (avg_val_loss, avg_val_acc))
 
+        # fill the data for the plot at the end
         train_losses.append(avg_train_loss)
         val_losses.append(avg_val_loss)
 
+    # --------- PLOTTING ----------
+    # plotting the epochs - training and validation losses
     epochs_axis = np.arange(1, epochs + 1)  # [1, 2, ..., epochs]
-
-    plt.figure(figsize=(8, 5))
     
+    plt.figure(figsize=(8, 5))
     plt.plot(epochs_axis, train_losses, marker='o', label="Train Loss")
-
     plt.plot(epochs_axis, val_losses, marker='o', label="Validation Loss")
-
-    #print("train_losses: "+str(train_losses))
-    #print("val losses: "+str(val_losses))
 
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.title("Loss over Epochs")
     plt.grid(True, alpha=0.3)
     plt.legend()
-
     plt.savefig(f"results/{lr}_epoch_losses.png", dpi=200)
 
     return -avg_val_loss, model
 
 
 def run_single_bo_experiment(cfg: DictConfig, seed: int):
+    """
+    This method runs the Bayesian Optimization experiment for a given seed.
+
+    Args:
+        cfg: DictConfig
+            current config under conf/config.yaml
+        seed: int
+            current seed
+
+    Returns:
+        dict
+            out of the seed, best learning rate, best loss
+    """
     print(f"\n========== Seed {seed} ==========")
     set_global_seed(seed)
 
@@ -143,7 +202,7 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
 
     train_loader, val_loader = build_dataloaders(cfg)
 
-    # --- GP & BO setup ---
+    # ------ GP & BO setup -------
     kernel = C(1.0, (1e-3, 1e3)) * RBF(1.0, (1e-2, 1e2))
     gp = GaussianProcessRegressor(
         kernel=kernel,
@@ -158,7 +217,7 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
         gp=gp,
         mode="log",
         bound=bound,
-        path=cfg.result_path,
+        path="result/",
         size_search_space=250
     )
 
@@ -173,16 +232,16 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
 
     for lr in sobol_init_lrs:
         x_max, best_return_x, best_return_param = bo.eval(1, lr)
-        print(f"Learning rate {lr} from Sobol leads to better x_max: {x_max}")
+        print(f"Learning rate {lr} from Sobol leads max acquisition result of the next best x_max: {x_max}")
 
     x_max, found_lr, best_model = bo.eval(n_iter=n_iter, init_x_max=x_max)
     
     print(f"[Seed {seed}] --> Found best learning rate at: {found_lr:.6f}")
 
+    # plotting the current results of the BO into one file.
     bo.plot_all_in_one(cols=1, seed=seed, save=True, show=False)
 
-    bo.plot_lr_vs_loss(seed=seed, save=True, show=False)
-
+    # plotting the best learning rate per iteration of the bayesian optimization.
     bo.plot_convergence(seed=seed, save=True, show=False)
     
     best_y = max([pt[1] for pt in bo.dataset])
@@ -193,6 +252,10 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
     }
 
 def main():
+    """
+    Starting point of the file.
+
+    """
     with initialize(version_base=None, config_path="conf"):
          cfg = compose(config_name="config")
 

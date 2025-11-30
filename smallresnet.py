@@ -11,7 +11,7 @@ import torch.nn.functional as F
 class ResidualBlock(nn.Module):
     """
     Block:
-        x -> Conv2d(64,64) -> Conv2d(64,64) -> +x -> ReLU
+        x -> Conv2d(64,64) -> BatchNorm -> Conv2d(64,64) -> BatchNorm -> +x -> ReLU
     Alle Convs: kernel_size=3, padding=1, stride=1
     """
 
@@ -38,10 +38,13 @@ class ResidualBlock(nn.Module):
 
 class SmallResNet(nn.Module):
     """
-    Architektur:
+    Architecture:
 
     Input (N,1,28,28)
-      -> Conv2d(1,64,3x3, padding=1)
+      -> Conv2d(1, 64, 3x3, padding=1)
+      -> BatchNorm(64, 64)
+      -> ReLU
+      -> MaxPooling
       -> ResidualBlock
       -> ResidualBlock
       -> ResidualBlock
@@ -51,19 +54,26 @@ class SmallResNet(nn.Module):
     """
 
     def __init__(self, num_classes: int = 10):
+        """
+        Initializes the ResNet.
+        
+        Args:
+            num_classes: int
+                Number of classes.
+        """
         super().__init__()
         self.stem = nn.Sequential(
             nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2)  # 28x28 -> 14x14
+            nn.MaxPool2d(kernel_size=2)  
         )
 
         self.block1 = ResidualBlock(64)
         self.block2 = ResidualBlock(64)
         self.block3 = ResidualBlock(64)
 
-        self.global_pool = nn.AdaptiveAvgPool2d((1, 1)) # GlobalAveragePooling2D -> (N, 64)
+        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.fc1 = nn.Linear(64, 64)
         self.fc2 = nn.Linear(64, num_classes)
