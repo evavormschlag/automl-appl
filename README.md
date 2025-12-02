@@ -50,14 +50,17 @@ project_root/
 ├── conf/
 │   └── config.yaml            # experiment settings (bounds, epochs, seeds, device, ...)
 │
+├── data/                      # downloaded fashionmnist dataset
+│
 ├── results/
 │   └── experiment/                # plots + logs for each seed with an epoch of 10 for 5 different seeds
 │        └── bo_results.json     # includes the results per seed. (best learning rate, best loss)
 │        └── **_all_iterations.png     # includes the graphs for each bayesian optimization. 
-│        └── **_epoch_losses.png     # Loss per epoch
 │        └── **_iterationvsbestsofar.png     # best loss per iteration of the bo.
 │
-└── README.md
+├── README.md
+├── requirements.txt          # include the packages that has been used
+└── .gitignore    # gitignore
 ```
 
 ## Methods 
@@ -95,7 +98,7 @@ n_total: 2
 n_sobol: 1    
 bound:
   low: 1e-4
-  high: 1e-1
+  high: 3e-1
 
 
 
@@ -115,9 +118,9 @@ Although Bayesian Optimization successfully adapts its acquisition function and 
 
 - Sobol initialization strongly influences the outcome:
   Each seed produces a different Sobol sequence, leading to different initial evaluations and therefore different optimization trajectories.
-- 3 of 5 results of different seeds have the best learning rate of 0.1. That is the upper bound.
+- 2 of 5 results of different seeds have the best learning rate of 0.3. That is the upper bound.
   This indicates that the optimal region may lie beyond the current bound.
-- The remaining two seeds exhibit noisy behavior and high posterior uncertainty.
+- The remaining three seeds exhibit noisy behavior and high posterior uncertainty.
   It suggests that the number of evaluations may be too small to stabilize the surrogate function.
 
 To improve the stability and quality of the optimization results, I would recommend the following:
@@ -127,7 +130,7 @@ To improve the stability and quality of the optimization results, I would recomm
 - Experiment with different GP kernels
   So far, only a single kernel (Constant × RBF) has been applied.
   Alternatives may capture the shape of the loss landscape better.
-- Expand the learning-rate bound
+- Expand the learning-rate bound.
 - Adjust the WEI α parameter.
   With balancing the exploration and exploitation it may stabilize the optimization.
 

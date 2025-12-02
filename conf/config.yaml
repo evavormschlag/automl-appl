@@ -17,4 +17,4 @@ bound:
 batch_size: 64
 val_ratio: 0.2  # ratio between training and validation
 
-device: "mps"      # or "cuda" / "cpu"
+device: "cuda"      # or "cuda" / "cpu"
