@@ -158,6 +158,7 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
                 avg_val_loss = 10.0
             print("--> Validation-Loss :%.4f & Validation-Accuracy: %.4f" % (avg_val_loss, avg_val_acc))
 
+    
     return -avg_val_loss, model
 
 
@@ -197,7 +198,7 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
         gp=gp,
         mode="log",
         bound=bound,
-        path="result/",
+        path="results/",
         size_search_space=250
     )
 
