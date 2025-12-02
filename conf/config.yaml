@@ -4,7 +4,7 @@ defaults:
   - override hydra/hydra_logging: disabled
 
 # training / bo parameter
-epochs: 10
+epochs: 15
 seeds: [0, 1, 2, 3, 4]  
 n_total: 2        
 n_sobol: 1    

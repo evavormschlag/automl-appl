@@ -30,7 +30,6 @@ class BayesianOptimizer:
         gp_search_space: ndarray
             Search space of the gp can be transformed logarithmically depending on the mode.
 
-        
         dataset: list
             The given dataset.
 

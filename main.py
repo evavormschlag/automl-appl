@@ -14,7 +14,6 @@ from tqdm import tqdm
 from omegaconf import DictConfig, OmegaConf
 from hydra import initialize, compose
 
-
 from smallresnet import SmallResNet
 from fashionmnist import FashionMNIST
 from bayesian_optimizer import BayesianOptimizer
@@ -56,6 +55,7 @@ def build_dataloaders(cfg: DictConfig):
 
     return train_loader, val_loader
 
+
 def accuracy(pred, true):
     """
     Calculated the accuracy of current batch
@@ -69,6 +69,7 @@ def accuracy(pred, true):
     class_index_pred = pred.argmax(dim=1)
     correct = (class_index_pred == true).sum().item()
     return correct / true.size(0)
+
 
 def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
     """
@@ -99,8 +100,6 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
     # initialize variables
-    val_losses = []
-    train_losses = []
     avg_train_loss = 0.0
     avg_train_acc = 0.0
     avg_val_loss = 0.0
@@ -158,25 +157,6 @@ def run_optimizing_function(device, lr, train_loader, val_loader, epochs):
                 print(f"[WARN] avg_val_loss is {avg_val_loss} at lr={lr:.1e}. Forcing to 10.0")
                 avg_val_loss = 10.0
             print("--> Validation-Loss :%.4f & Validation-Accuracy: %.4f" % (avg_val_loss, avg_val_acc))
-
-        # fill the data for the plot at the end
-        train_losses.append(avg_train_loss)
-        val_losses.append(avg_val_loss)
-
-    # --------- PLOTTING ----------
-    # plotting the epochs - training and validation losses
-    epochs_axis = np.arange(1, epochs + 1)  # [1, 2, ..., epochs]
-    
-    plt.figure(figsize=(8, 5))
-    plt.plot(epochs_axis, train_losses, marker='o', label="Train Loss")
-    plt.plot(epochs_axis, val_losses, marker='o', label="Validation Loss")
-
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Loss over Epochs")
-    plt.grid(True, alpha=0.3)
-    plt.legend()
-    plt.savefig(f"results/{lr}_epoch_losses.png", dpi=200)
 
     return -avg_val_loss, model
 
@@ -251,6 +231,7 @@ def run_single_bo_experiment(cfg: DictConfig, seed: int):
         "best_y": float(best_y),
     }
 
+
 def main():
     """
     Starting point of the file.
@@ -276,6 +257,6 @@ def main():
     print("All seeds done.")
 
 
-
 if __name__ == "__main__":
     main()
+

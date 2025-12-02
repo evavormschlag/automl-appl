@@ -106,7 +106,6 @@ val_ratio: 0.2  # ratio between training and validation
 The following visualizations were made:
 
 - GP posterior + uncertainty + WEI per BO iteration (Seed_x_all_iterations.png)
-- Epoch loss curve (train/val) for each LR evaluation (Seed_X_{LR}_epoch_losses.png)
 - The best learning rate per BO iteration (Seed_x_iterationsvsbestsofar.png)
 
 
