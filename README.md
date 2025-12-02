@@ -117,10 +117,13 @@ The following visualizations were made:
 Although Bayesian Optimization successfully adapts its acquisition function and explores promising regions of the learning-rate space, the obtained results show notable variability across seeds. The main observations are:
 
 - Sobol initialization strongly influences the outcome:
+  
   Each seed produces a different Sobol sequence, leading to different initial evaluations and therefore different optimization trajectories.
 - 2 of 5 results of different seeds have the best learning rate of 0.3. That is the upper bound.
+  
   This indicates that the optimal region may lie beyond the current bound.
 - The remaining three seeds exhibit noisy behavior and high posterior uncertainty.
+  
   It suggests that the number of evaluations may be too small to stabilize the surrogate function.
 
 To improve the stability and quality of the optimization results, I would recommend the following:
@@ -128,10 +131,12 @@ To improve the stability and quality of the optimization results, I would recomm
 - Increase the number of training epochs (reducing the noise in validation loss)
 - Evaluate more seeds
 - Experiment with different GP kernels
+  
   So far, only a single kernel (Constant × RBF) has been applied.
   Alternatives may capture the shape of the loss landscape better.
 - Expand the learning-rate bound.
 - Adjust the WEI α parameter.
+  
   With balancing the exploration and exploitation it may stabilize the optimization.
 
 
