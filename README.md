@@ -94,8 +94,8 @@ config.yaml
 # training / bo parameter
 epochs: 10
 seeds: [0, 1, 2, 3, 4]  
-n_total: 2        
-n_sobol: 1    
+n_total: 10       
+n_sobol: 3    
 bound:
   low: 1e-4
   high: 3e-1
